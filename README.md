@@ -17,7 +17,6 @@ A **movie recommendation system** that uses **Collaborative Filtering** (user be
 - **Popularity-based recommendations** — weighted ranking using rating count and average rating  \
 - **Preference-based recommendations** — users select movies to receive similar recommendations based on their choices
 - **Interactive UI** with movie detail dialogs  
-- **New user/movie ingestion** — fine-tuning support to add new entities without full retraining
 
 
 ---
@@ -41,9 +40,9 @@ User selects movies / enters User ID
    
    Home Page:
 
-   Row 1: "Because You Watched These"   ← Content-based
-   Row 2: "Users Like You Also Loved"   ← Collaborative Filtering
-   Row 2: "Popular Movies"   ← Popularity-based ranking
+   Row 1: "Users Like You Also Loved"   ← Collaborative Filtering
+   Row 2: "Because You Watched These"   ← Content-based
+   Row 3: "Popular Movies"   ← Popularity-based ranking
    
 
    Discover Page: Cold-start CB         ← No login required
@@ -62,7 +61,7 @@ NCF shows marginal improvement (~0.014 stars). Since MovieLens 1M is relatively 
 
 ---
 
-## Key Technical Decisions that I learnt while building this project
+## Key Technical Decisions
 
 ### Why Matrix Factorization over NCF?
 NCF (dot product path + MLP path) gave 0.014 star improvement in RMSE. For a real-time UI where inference speed matters, the marginal gain didn't justify the additional complexity. Both models are in the notebooks for comparison.
@@ -78,6 +77,21 @@ Bias embeddings capture real signal — "user 42 always rates 0.8 above average"
 ## Known Limitations
 
 - **Dataset ends at year 2000.** MovieLens 1M was collected in 2000-2001 and contains no movies after that year. This is a dataset limitation, not a model limitation. The architecture supports updating to a newer dataset — new movies can be added via embedding fine-tuning without full retraining (see `02-add_new_users_movies_to_the_model.ipynb`).
+- **Extensibility:** The system is designed to support adding new users and movies via embedding fine-tuning without full retraining. This capability is demonstrated in the notebooks but not exposed in the UI.
+
+---
+
+## Future Improvements
+
+- Add user onboarding and persistence to support real-time user ingestion  
+- Enable online updates for new users and movies via incremental embedding training
+
+---
+
+## Highlights
+
+- Reduced TF-IDF storage from **1.3GB → ~1.4MB** using sparse matrices  
+- Real-time recommendations using vectorized inference (no model.predict overhead)  
 
 ---
 
