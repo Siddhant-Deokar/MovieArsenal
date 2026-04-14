@@ -128,8 +128,8 @@ st.markdown("""
 if st.session_state.uid is None:
     pg = st.navigation(
         [
+            st.Page("discover_page.py"),
             st.Page("login_page.py"),
-            st.Page("discover_page.py")
         ],
         position="top"
     )
