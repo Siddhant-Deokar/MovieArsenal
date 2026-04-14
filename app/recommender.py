@@ -5,6 +5,8 @@ import pickle
 import streamlit as st
 from sklearn.metrics.pairwise import cosine_similarity
 from scipy import sparse
+from collections import Counter
+
 
 @st.cache_resource
 def load_resources():
@@ -145,7 +147,7 @@ def collab_recommend(user_id, num_movies=25, min_num_rating= 50, ):
    
 # Content Based Recommender
 @st.cache_data     
-def content_based_recommend(user_id,num_movies = 40):
+def content_based_recommend(user_id,num_movies = 20):
     
     """
     Recommends movies using Content Based Recommendation.
@@ -182,9 +184,11 @@ def content_based_recommend(user_id,num_movies = 40):
         
             
     # check whether the movie exists in the map (as we did drop some old movies with incomplete data, which wold rarely be a problem)        
-    fav_movie_ids = [cb_movie_to_id[i] for i in fav_movie_ids if i in cb_movie_to_id] 
+    fav_movie_idx = [cb_movie_to_id[i] for i in fav_movie_ids if i in cb_movie_to_id] 
         
-    mean_vector = tfidf_matrix[fav_movie_ids].mean(axis=0)
+    fav_vectors = tfidf_matrix[fav_movie_idx]
+    
+    mean_vector = fav_vectors.mean(axis=0)
     mean_vector = np.asarray(mean_vector)
     # cosine similarity expects a 2d array, our mean_vector is current 1d -> [1,2,3,..]
     mean_vector = mean_vector.reshape(1,-1) # converting [1,2] -> [[1,2]] 
@@ -202,13 +206,47 @@ def content_based_recommend(user_id,num_movies = 40):
     most_similar_movies = most_similar_movies[~np.isin(most_similar_movies, movie_history)]
 
     # Descending order
-    recommend_movies = most_similar_movies[::-1]
+    recommend_movies_idx = most_similar_movies[::-1][:num_movies]
     
 
-    # converting idx to MovieId
-    recommend_movies = [ cb_id_to_movie[int(i)] for i in recommend_movies if int(i) in cb_id_to_movie][:num_movies]
+    # Finding most similar movies to the recommended movies, for personalised Section labels
+   
+   # vectors
+    recommended_vectors = tfidf_matrix[recommend_movies_idx]
+    
+    # similarity (num_movies x 20)
+    sim_matrix = cosine_similarity(recommended_vectors, fav_vectors)
+    
+    top_movie_idx_per_recommended_movie = np.argmax(sim_matrix,axis = 1)
+    
+    # map to TF-IDF indices
+    top1_fav_idx = [fav_movie_idx[i] for i in top_movie_idx_per_recommended_movie]
+    
+    top1_movie_ids = [
+    cb_id_to_movie[int(i)] for i in top1_fav_idx if int(i) in cb_id_to_movie
+    ]
+    
+    # returns a list of tuple, id with its count [(id, count(id)), (id, count(id))]
+    top_movies = Counter(top1_movie_ids).most_common(2)
+    top_movies = [movie_id for movie_id,_ in top_movies]
+    
+    try:
+        # if both id exists
+        top_movies = df.set_index('MovieID').loc[top_movies,'title'].values
+    
+    except:
+        top_movies = df[df['MovieID']].isin(top_movies)['title'].values
 
-    return df.loc[df['MovieID'].isin(recommend_movies),:]
+    if len(top_movies)>1:
+        top_movies = ' and '.join(top_movies)
+        
+    else:
+        top_movies = top_movies[0]
+    
+    # converting idx to MovieId
+    recommend_movies_id = [ cb_id_to_movie[int(i)] for i in recommend_movies_idx if int(i) in cb_id_to_movie][:num_movies]
+
+    return  top_movies, df.loc[df['MovieID'].isin(recommend_movies_id),:]
 
 
 # ── Cold Start (Discover page — no login needed) ─────────────────────────────  

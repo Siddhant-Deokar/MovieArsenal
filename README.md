@@ -6,7 +6,12 @@ A **movie recommendation system** that uses **Collaborative Filtering** (user be
 
 ## Demo
 
-![Discover Page](discover%20page%20test.png)
+![Home Page Collaborative Filtering](images/01-home-page-collaborative-filtering.png)
+
+![Home Page Content-Based](images/02-home-page-content-based.png)
+
+![Discover Page Test 1](images/discover-page-test-01.png)
+![Discover Page Test 1](images/discover-page-test-02.png)
 
 ---
 

@@ -36,7 +36,7 @@ num_movies = 7
 
 collab_based = collab_recommend(user_id)
 
-content_based = content_based_recommend(user_id)
+top_movies, content_based = content_based_recommend(user_id)
 
 if st.session_state.collab_sample is None:
     st.session_state.collab_sample = collab_based.sample(num_movies)
@@ -153,7 +153,7 @@ if st.button("Refresh Recommendations"):
 print_row(st.session_state.collab_sample, 'Similar users liked...')
 st.divider()
 
-print_row(st.session_state.content_sample, 'Based on what you liked...')
+print_row(st.session_state.content_sample, f'Because you liked {top_movies}...')
 st.divider()
 
 
