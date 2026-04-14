@@ -19,6 +19,7 @@ if "selected_movie" not in st.session_state:
 if "show_dialog" not in st.session_state:
     st.session_state.show_dialog = False
 
+st.set_page_config(layout="wide")
 
 @st.cache_resource
 def load_movie_options():
